@@ -77,8 +77,13 @@ describe('commandVersion', () => {
   it('runs the CLI and parses its version output', async () => {
     const bin = path.join(dir, 'bin');
     await mkdir(bin);
-    const file = path.join(bin, 'fake-cli');
-    await writeFile(file, '#!/bin/sh\n echo fake-cli 4.5.6 \n');
+    // On Windows a .cmd shim, which also covers the batch-through-shell path.
+    const windows = process.platform === 'win32';
+    const file = path.join(bin, windows ? 'fake-cli.cmd' : 'fake-cli');
+    await writeFile(
+      file,
+      windows ? '@echo fake-cli 4.5.6\r\n' : '#!/bin/sh\n echo fake-cli 4.5.6 \n',
+    );
     await chmod(file, 0o755);
     expect(await commandVersion(file)).toBe('4.5.6');
   });
